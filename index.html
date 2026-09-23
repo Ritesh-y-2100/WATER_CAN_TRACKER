@@ -95,7 +95,8 @@
     <div id="currentUpi" class="upi-info">UPI: ---</div>
 
     <!-- Direct UPI Payment Button -->
-    <a id="payNowBtn" href="#" class="btn-pay">Pay Now via UPI (₹30)</a>
+    <a id="payNowBtn" href="upi://pay?pa=ritesh.y01012008@okicici&pn=WaterCan&am=30&cu=INR" class="btn-pay">Pay Now via UPI (₹30)</a>
+
 
     <!-- Manual Confirmation Button -->
     <button class="btn-confirm" onclick="markPaid()">Mark Paid & Next Turn</button>
@@ -111,16 +112,16 @@
 <script>
   // Add your 10 members with their names and UPI IDs here
   const defaultMembers = [
-    { name: "Member 1", upi: "member1@upi" },
-    { name: "Member 2", upi: "member2@upi" },
-    { name: "Member 3", upi: "member3@upi" },
-    { name: "Member 4", upi: "member4@upi" },
-    { name: "Member 5", upi: "member5@upi" },
-    { name: "Member 6", upi: "member6@upi" },
-    { name: "Member 7", upi: "member7@upi" },
-    { name: "Member 8", upi: "member8@upi" },
-    { name: "Member 9", upi: "member9@upi" },
-    { name: "Member 10", upi: "member10@upi" }
+    { name: "DEVESH", upi: "member1@upi" },
+    { name: "DHANUSH", upi: "member2@upi" },
+    { name: "JAYA SURIYA", upi: "member3@upi" },
+    { name: "LAKSHMI NARAYANAN", upi: "member4@upi" },
+    { name: "MADHAVAN", upi: "member5@upi" },
+    { name: "MADHUSUDHANA", upi: "member6@upi" },
+    { name: "MUKESH EASHWAR", upi: "member7@upi" },
+    { name: "RITESH", upi: "member8@upi" },
+    { name: "RITHICK", upi: "member9@upi" },
+    { name: "UTHAYA MARAN", upi: "member10@upi" }
   ];
 
   const WATER_CAN_PRICE = "30"; // Set the cost of 1 water can here
