@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Water Can Payment Tracker</title>
+  <title>Water Can Tracker</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #eef2f5;
+      background-color: #f0f4f8;
       margin: 0;
       padding: 20px;
       display: flex;
@@ -15,34 +15,27 @@
     }
     .container {
       background: #ffffff;
-      padding: 24px;
-      border-radius: 14px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       max-width: 420px;
       width: 100%;
     }
     h2 { text-align: center; color: #007bff; margin-top: 0; }
-    
     .card {
-      background: #f0f7ff;
-      border: 2px solid #007bff;
-      padding: 16px;
-      border-radius: 10px;
-      text-align: center;
+      background: #e9f5ff;
+      border-left: 5px solid #007bff;
+      padding: 15px;
+      border-radius: 6px;
       margin-bottom: 20px;
+      text-align: center;
     }
     .current-name {
-      font-size: 1.4rem;
+      font-size: 1.6rem;
       font-weight: bold;
-      color: #111;
-      margin: 6px 0;
+      color: #2c3e50;
+      margin-top: 5px;
     }
-    .upi-info {
-      font-size: 0.9rem;
-      color: #666;
-      margin-bottom: 12px;
-    }
-
     .btn-pay {
       display: block;
       width: 100%;
@@ -50,38 +43,52 @@
       background: #28a745;
       color: white;
       text-align: center;
-      border-radius: 8px;
       text-decoration: none;
-      font-weight: bold;
+      border-radius: 6px;
       font-size: 1rem;
+      font-weight: bold;
       box-sizing: border-box;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
-    .btn-pay:hover { background: #218838; }
-
-    .btn-confirm {
+    .pin-box {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .pin-box input {
       width: 100%;
       padding: 10px;
+      font-size: 1rem;
+      text-align: center;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .pin-box input:focus {
+      border-color: #007bff;
+    }
+    .btn-confirm {
+      width: 100%;
+      padding: 12px;
       background: #007bff;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
+      border-radius: 6px;
+      font-size: 1rem;
       cursor: pointer;
+      font-weight: bold;
     }
-    .btn-confirm:hover { background: #0056b3; }
-
-    .section-title { font-weight: bold; margin-top: 24px; color: #444; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-    ul { list-style: none; padding: 0; margin: 10px 0; }
+    .section-title { font-weight: bold; margin-top: 25px; color: #555; }
+    ul { list-style: none; padding: 0; margin-top: 10px; }
     li {
       padding: 10px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
-      font-size: 0.95rem;
     }
-    .next-tag { color: #007bff; font-weight: bold; }
-    .history-list { font-size: 0.85rem; color: #666; max-height: 120px; overflow-y: auto; }
+    .next { color: #007bff; font-weight: bold; }
+    .history-list { font-size: 0.85rem; color: #666; max-height: 150px; overflow-y: auto; }
+    .error-msg { color: #dc3545; font-size: 0.85rem; text-align: center; margin-top: 5px; display: none; }
   </style>
 </head>
 <body>
@@ -92,15 +99,17 @@
   <div class="card">
     <div>CURRENT TURN TO PAY:</div>
     <div id="currentPayer" class="current-name">---</div>
-    <div id="currentUpi" class="upi-info">UPI: ---</div>
-
-    <!-- Direct UPI Payment Button -->
-    <a id="payNowBtn" href="upi://pay?pa=ritesh.y01012008@okicici&pn=WaterCan&am=30&cu=INR" class="btn-pay">Pay Now via UPI (₹30)</a>
-
-
-    <!-- Manual Confirmation Button -->
-    <button class="btn-confirm" onclick="markPaid()">Mark Paid & Next Turn</button>
   </div>
+
+  <!-- Direct UPI Payment Link to Ritesh -->
+  <a id="payNowBtn" href="upi://pay?pa=ritesh.y01012008@okicici&pn=WaterCan&am=30&cu=INR" class="btn-pay">Pay Now via UPI (₹30)</a>
+
+  <div class="pin-box">
+    <input type="password" id="adminPin" placeholder="Enter Receiver PIN to Confirm" maxlength="4">
+    <div id="errorMsg" class="error-msg">Incorrect PIN! Payment not verified.</div>
+  </div>
+
+  <button class="btn-confirm" onclick="markPaid()">Confirm & Pass Turn</button>
 
   <div class="section-title">Rotation Order</div>
   <ul id="membersList"></ul>
@@ -110,73 +119,70 @@
 </div>
 
 <script>
-  // Add your 10 members with their names and UPI IDs here
+  // Receiver Secret PIN (Change 1234 to your choice)
+  const SECRET_PIN = "4444";
+
+  // Members list in rotation sequence
   const defaultMembers = [
-    { name: "DEVESH", upi: "member1@upi" },
-    { name: "DHANUSH", upi: "member2@upi" },
-    { name: "JAYA SURIYA", upi: "member3@upi" },
-    { name: "LAKSHMI NARAYANAN", upi: "member4@upi" },
-    { name: "MADHAVAN", upi: "member5@upi" },
-    { name: "MADHUSUDHANA", upi: "member6@upi" },
-    { name: "MUKESH EASHWAR", upi: "member7@upi" },
-    { name: "RITESH", upi: "member8@upi" },
-    { name: "RITHICK", upi: "member9@upi" },
-    { name: "UTHAYA MARAN", upi: "member10@upi" }
+    "DEVESH",
+    "DHANUSH",
+    "JAYA SURIYA",
+    "LAKSHMI NARAYANAN",
+    "MADHAVAN",
+    "MADHUSUDHANA",
+    "MUKESH EASHWAR",
+    "RITESH",
+    "RITHICK",
+    "UTHAYA MARAN"
   ];
 
-  const WATER_CAN_PRICE = "30"; // Set the cost of 1 water can here
-
-  let members = JSON.parse(localStorage.getItem('water_members_upi')) || defaultMembers;
-  let currentIndex = parseInt(localStorage.getItem('water_index_upi')) || 0;
-  let history = JSON.parse(localStorage.getItem('water_history_upi')) || [];
+  let members = JSON.parse(localStorage.getItem('water_members')) || defaultMembers;
+  let currentIndex = parseInt(localStorage.getItem('water_index')) || 0;
+  let history = JSON.parse(localStorage.getItem('water_history')) || [];
 
   function updateUI() {
-    const activeMember = members[currentIndex];
+    document.getElementById('currentPayer').innerText = members[currentIndex];
 
-    // Show name and UPI ID
-    document.getElementById('currentPayer').innerText = activeMember.name;
-    document.getElementById('currentUpi').innerText = `UPI ID: ${activeMember.upi}`;
-
-    // Create Universal UPI Deep Link String
-    const upiLink = `upi://pay?pa=${activeMember.upi}&pn=${encodeURIComponent(activeMember.name)}&am=${WATER_CAN_PRICE}&cu=INR&tn=${encodeURIComponent('Water Can Payment')}`;
-    
-    // Attach deep link to the button
-    document.getElementById('payNowBtn').href = upiLink;
-
-    // Render rotation order list
     const membersListEl = document.getElementById('membersList');
     membersListEl.innerHTML = '';
-    members.forEach((m, index) => {
+    members.forEach((name, index) => {
       const li = document.createElement('li');
-      li.innerHTML = `<span>${index + 1}. ${m.name}</span>`;
+      li.innerText = `${index + 1}. ${name}`;
       if (index === currentIndex) {
-        li.innerHTML += ' <span class="next-tag">(Next Turn)</span>';
+        li.innerHTML += ' <span class="next">(Next Turn)</span>';
       }
       membersListEl.appendChild(li);
     });
 
-    // Render payment history
     const historyListEl = document.getElementById('historyList');
     historyListEl.innerHTML = '';
     history.slice().reverse().forEach(entry => {
       const li = document.createElement('li');
-      li.innerText = `${entry.name} paid ₹${WATER_CAN_PRICE} on ${entry.date}`;
+      li.innerText = `${entry.name} paid ₹30 on ${entry.date}`;
       historyListEl.appendChild(li);
     });
 
-    // Save current state locally
-    localStorage.setItem('water_members_upi', JSON.stringify(members));
-    localStorage.setItem('water_index_upi', currentIndex);
-    localStorage.setItem('water_history_upi', JSON.stringify(history));
+    localStorage.setItem('water_members', JSON.stringify(members));
+    localStorage.setItem('water_index', currentIndex);
+    localStorage.setItem('water_history', JSON.stringify(history));
   }
 
   function markPaid() {
-    const activeMember = members[currentIndex];
+    const enteredPin = document.getElementById('adminPin').value;
+    const errorMsgEl = document.getElementById('errorMsg');
+
+    if (enteredPin !== SECRET_PIN) {
+      errorMsgEl.style.display = 'block';
+      return;
+    }
+
+    errorMsgEl.style.display = 'none';
+    document.getElementById('adminPin').value = '';
+
+    const paidMember = members[currentIndex];
     const timestamp = new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-    history.push({ name: activeMember.name, date: timestamp });
-
-    // Rotate to next member in queue
+    history.push({ name: paidMember, date: timestamp });
     currentIndex = (currentIndex + 1) % members.length;
 
     updateUI();
